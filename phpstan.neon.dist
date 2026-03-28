@@ -1,0 +1,13 @@
+parameters:
+    level: 6
+    paths:
+        - src
+        - tests
+    tmpDir: .phpstan
+    ignoreErrors:
+        -
+            identifier: property.unusedType
+            path: src/Infrastructure/Doctrine/Entity/**
+        -
+            identifier: property.onlyWritten
+            path: src/Infrastructure/Doctrine/Entity/**

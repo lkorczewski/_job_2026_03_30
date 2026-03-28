@@ -4,7 +4,7 @@
 use Doctrine\ORM\Tools\Console\ConsoleRunner;
 use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
 
-$entityManager = require __DIR__ . '/../src/bootstrap.php';
+$entityManager = require __DIR__ . '/../src/bootstrap/doctrine.php';
 
 ConsoleRunner::run(
     new SingleManagerProvider($entityManager)

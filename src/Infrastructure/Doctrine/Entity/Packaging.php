@@ -1,7 +1,10 @@
 <?php
 
-namespace App\Entity;
+declare(strict_types=1);
 
+namespace App\Infrastructure\Doctrine\Entity;
+
+use App\Domain\Packaging as DomainPackaging;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -13,7 +16,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity]
 class Packaging
 {
-
     #[ORM\Id]
     #[ORM\Column(type: Types::INTEGER)]
     #[ORM\GeneratedValue]
@@ -39,4 +41,8 @@ class Packaging
         $this->maxWeight = $maxWeight;
     }
 
+    public function toDomain(): DomainPackaging
+    {
+        return new DomainPackaging($this->id, $this->width, $this->height, $this->length, $this->maxWeight);
+    }
 }
