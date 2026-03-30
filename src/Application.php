@@ -99,14 +99,7 @@ final readonly class Application
     }
 
     /**
-     * @param array{
-     *     products: list<array{
-     *         width: float|int,
-     *         height: float|int,
-     *         length: float|int,
-     *         weight: float|int
-     *     }>
-     * } $responseBody
+     * @param array<string, mixed> $responseBody
      */
     private function extractProducts(array $responseBody): Products
     {

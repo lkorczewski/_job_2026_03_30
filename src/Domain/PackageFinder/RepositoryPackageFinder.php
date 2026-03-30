@@ -10,7 +10,7 @@ use App\Domain\Products;
 final readonly class RepositoryPackageFinder implements PackageFinder
 {
     public function __construct(
-        private PackagingAssignmentRepository    $assignmentRepository,
+        private PackagingAssignmentRepository $assignmentRepository,
     ) {
     }
 
