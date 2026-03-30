@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\PackageFinder;
 
-use App\Domain\Exception\TooManyProducts;
 use App\Domain\PackagingsRepository;
 use App\Domain\Product;
 use App\Domain\Products;
@@ -15,7 +14,6 @@ final readonly class FallbackPackageFinder implements PackageFinder
     {
     }
 
-    /** @throws TooManyProducts */
     public function findPackage(Products $products): PackageFinderResult
     {
         if ($products->count() !== 1) {

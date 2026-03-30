@@ -4,49 +4,93 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine;
 
-use App\Domain\Exception\TooManyProducts;
 use App\Domain\PackagingAssignment;
 use App\Domain\PackagingAssignmentRepository;
+use App\Domain\Product;
 use App\Domain\Products;
 use App\Infrastructure\Doctrine\Entity\Packaging as PackagingEntity;
 use App\Infrastructure\Doctrine\Entity\PackagingAssignment as PackagingAssignmentEntity;
+use App\Infrastructure\Doctrine\Entity\PackagingAssignmentProduct as PackagingAssignmentProductEntity;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class DoctrinePackagingAssignmentRepository implements PackagingAssignmentRepository
 {
     public function __construct(
-        private SignatureBuilder $signatureCalculator,
+        private ProductSignatureCalculator $productSignatureCalculator,
         private EntityManagerInterface $entityManager
     ) {
     }
 
-    /** @throws TooManyProducts */
     public function save(PackagingAssignment $packagingAssignment): void
     {
-        $packagingEntity = $this->entityManager
-            ->getRepository(PackagingEntity::class)
-            ->find($packagingAssignment->packaging->id);
+        $packagingEntity = $packagingAssignment->packaging === null
+            ? null
+            : $this->entityManager
+                ->getRepository(PackagingEntity::class)
+                ->find($packagingAssignment->packaging->id);
 
-        $packagingAssignment = new PackagingAssignmentEntity(
-            $this->signatureCalculator->calculate($packagingAssignment->products),
-            $packagingEntity,
+        $products = iterator_to_array($packagingAssignment->products);
+
+        $assignmentProducts = array_map(
+            function (Product $product, int $position): PackagingAssignmentProductEntity {
+                return new PackagingAssignmentProductEntity(
+                    $position,
+                    $this->productSignatureCalculator->calculate($product),
+                );
+            },
+            $products,
+            array_keys($products),
         );
 
-        $this->entityManager->persist($packagingAssignment);
+        $packagingAssignmentEntity = new PackagingAssignmentEntity($packagingEntity, ...$assignmentProducts);
+
+        $this->entityManager->persist($packagingAssignmentEntity);
         $this->entityManager->flush();
     }
 
-    /** @throws TooManyProducts */
     public function findByProducts(Products $products): ?PackagingAssignment
     {
-        $signature = $this->signatureCalculator->calculate($products);
+        $products = iterator_to_array($products);
 
-        $packagingAssignmentEntity = $this->entityManager
+        if ($products === []) {
+            return null;
+        }
+
+        $queryBuilder = $this->entityManager
             ->getRepository(PackagingAssignmentEntity::class)
-            ->findOneBy(['productSignature' => $signature]);
+            ->createQueryBuilder('pa')
+            ->leftJoin('pa.products', 'allProducts')
+            ->groupBy('pa.id')
+            ->having('COUNT(DISTINCT allProducts.id) = :productCount')
+            ->setParameter('productCount', count($products));
+
+        foreach ($products as $position => $product) {
+            $alias = 'product' . $position;
+            $signature = $this->productSignatureCalculator->calculate($product);
+
+            $queryBuilder
+                ->join(
+                    'pa.products',
+                    $alias,
+                    'WITH',
+                    sprintf(
+                        '%s.position = :position%d AND %s.signature = :signature%d',
+                        $alias,
+                        $position,
+                        $alias,
+                        $position
+                    ),
+                )
+                ->setParameter('position' . $position, $position)
+                ->setParameter('signature' . $position, $signature);
+        }
+
+        $packagingAssignmentEntity = $queryBuilder
+            ->getQuery()
+            ->getOneOrNullResult();
 
         return $packagingAssignmentEntity
-            ? new PackagingAssignment($products, $packagingAssignmentEntity->packaging?->toDomain())
+            ? new PackagingAssignment(new Products(...$products), $packagingAssignmentEntity->packaging?->toDomain())
             : null;
     }
 }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests;
 
 use App\Application;
-use App\Domain\Exception\TooManyProducts;
 use App\Domain\PackageFinder\ApiPackageFinder;
 use App\Domain\PackageFinder\FallbackPackageFinder;
 use App\Domain\PackageFinder\PackageFinder;
@@ -106,17 +105,21 @@ final class ApplicationTest extends TestCase
 
     public function testTooManyProducts(): void
     {
-        $this->packageFinder
-            ->expects(self::once())
-            ->method('findPackage')
-            ->willThrowException(new TooManyProducts('Too many products'));
+        $this->packageFinder->expects(self::never())->method('findPackage');
+
+        $products = array_fill(0, 101, [
+            'width' => 1,
+            'height' => 2,
+            'length' => 3,
+            'weight' => 4,
+        ]);
 
         $response = $this->application->run(
             new Request(
                 'POST',
                 '/pack',
                 ['Content-Type' => 'application/json'],
-                '{"products":[{"width":1,"height":2,"length":3,"weight":4}]}',
+                json_encode(['products' => $products]),
             )
         );
 
