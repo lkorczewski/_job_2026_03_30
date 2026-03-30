@@ -55,6 +55,30 @@ final class RepositoryCachingWrapperTest extends TestCase
         self::assertSame($result, $this->wrapper->findPackage($products));
     }
 
+    public function testSavingWhenHitWithoutPackaging(): void
+    {
+        $products = new Products(
+            new Product(width: 300, height: 100, length: 200, weight: 400),
+        );
+        $normalizedProducts = new Products(
+            new Product(width: 100, height: 200, length: 300, weight: 400),
+        );
+        $result = PackageFinderResult::createHit(null, 'wrapped-finder');
+
+        $this->packageFinder
+            ->expects(self::once())
+            ->method('findPackage')
+            ->with($products)
+            ->willReturn($result);
+
+        $this->packagingAssignmentRepository
+            ->expects(self::once())
+            ->method('save')
+            ->with(new PackagingAssignment($normalizedProducts, null));
+
+        self::assertSame($result, $this->wrapper->findPackage($products));
+    }
+
     public function testNotSavingWhenMiss(): void
     {
         $products = new Products(

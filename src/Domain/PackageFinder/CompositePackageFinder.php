@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Domain\PackageFinder;
 
-use App\Domain\Exception\TooManyProducts;
 use App\Domain\Products;
 
 final readonly class CompositePackageFinder implements PackageFinder
@@ -19,7 +18,6 @@ final readonly class CompositePackageFinder implements PackageFinder
         $this->packageFinders = $packageFinders;
     }
 
-    /** @throws TooManyProducts */
     public function findPackage(Products $products): PackageFinderResult
     {
         $result = null;

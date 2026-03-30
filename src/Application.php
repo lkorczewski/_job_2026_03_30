@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App;
 
-use App\Domain\Exception\TooManyProducts;
 use App\Domain\PackageFinder\ApiPackageFinder;
 use App\Domain\PackageFinder\FallbackPackageFinder;
 use App\Domain\PackageFinder\PackageFinder;
@@ -15,11 +14,14 @@ use App\Domain\Products;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
 use JsonException;
+use LengthException;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 final readonly class Application
 {
+    private const int MAX_PRODUCTS = 100;
+
     public function __construct(
         private PackageFinder $packageFinder,
     ) {
@@ -37,13 +39,11 @@ final readonly class Application
             $products = $this->extractProducts($requestBody);
         } catch (InvalidArgumentException) {
             return $this->getInvalidRequestContentResponse();
-        }
-
-        try {
-            $result = $this->packageFinder->findPackage($products);
-        } catch (TooManyProducts) {
+        } catch (LengthException) {
             return $this->getTooManyProductsResponse();
         }
+
+        $result = $this->packageFinder->findPackage($products);
 
         if ($result->status !== PackageFinderResult::HIT) {
             return $this->getServiceUnavailableResponse();
@@ -121,6 +121,10 @@ final readonly class Application
     {
         if (!array_key_exists('products', $responseBody) || !is_array($responseBody['products'])) {
             throw new InvalidArgumentException('Missing or invalid products');
+        }
+
+        if (count($responseBody['products']) > self::MAX_PRODUCTS) {
+            throw new LengthException('Too many products');
         }
 
         $products = [];

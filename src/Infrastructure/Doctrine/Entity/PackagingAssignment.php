@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(indexes: [new ORM\Index(name: 'idx_product_signature', columns: ['productSignature'])])]
 class PackagingAssignment
 {
     #[ORM\Id]
@@ -16,16 +17,34 @@ class PackagingAssignment
     #[ORM\GeneratedValue]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING, length: 1024)]
-    public string $productSignature;
-
     #[ORM\ManyToOne(targetEntity: Packaging::class)]
     #[ORM\JoinColumn(nullable: true)]
     public ?Packaging $packaging;
 
-    public function __construct(string $productSetSignature, ?Packaging $packaging = null)
-    {
-        $this->productSignature = $productSetSignature;
+    /** @var Collection<int, PackagingAssignmentProduct> */
+    #[ORM\OneToMany(
+        targetEntity: PackagingAssignmentProduct::class,
+        mappedBy: 'packagingAssignment',
+        cascade: ['persist'],
+        orphanRemoval: true
+    )]
+    private Collection $products;
+
+    public function __construct(
+        ?Packaging $packaging = null,
+        PackagingAssignmentProduct ...$products,
+    ) {
         $this->packaging = $packaging;
+        $this->products = new ArrayCollection();
+
+        foreach ($products as $product) {
+            $this->addProduct($product);
+        }
+    }
+
+    public function addProduct(PackagingAssignmentProduct $product): void
+    {
+        $this->products->add($product);
+        $product->setPackagingAssignment($this);
     }
 }
