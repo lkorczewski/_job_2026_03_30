@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\PackageFinder;
+namespace App\Domain\PackagingFinder;
 
 use App\Domain\PackagingAssignmentRepository;
 use App\Domain\Products;
 
-final readonly class RepositoryPackageFinder implements PackageFinder
+final readonly class RepositoryPackagingFinder implements PackagingFinder
 {
     public function __construct(
         private PackagingAssignmentRepository $assignmentRepository,
     ) {
     }
 
-    public function findPackage(Products $products): PackageFinderResult
+    public function findPackage(Products $products): PackagingFinderResult
     {
         $packagingAssignment = $this->assignmentRepository->findByProducts($products->normalize());
 
         return $packagingAssignment
-            ? PackageFinderResult::createHit($packagingAssignment->packaging, self::class)
-            : PackageFinderResult::createMiss(self::class);
+            ? PackagingFinderResult::createHit($packagingAssignment->packaging, self::class)
+            : PackagingFinderResult::createMiss(self::class);
     }
 }

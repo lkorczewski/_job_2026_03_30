@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use App\Application;
-use App\Domain\PackageFinder\ApiPackageFinder;
-use App\Domain\PackageFinder\CompositePackageFinder;
-use App\Domain\PackageFinder\FallbackPackageFinder;
-use App\Domain\PackageFinder\RepositoryCachingWrapper;
-use App\Domain\PackageFinder\RepositoryPackageFinder;
+use App\Domain\PackagingFinder\ApiPackagingFinder;
+use App\Domain\PackagingFinder\CompositePackagingFinder;
+use App\Domain\PackagingFinder\FallbackPackagingFinder;
+use App\Domain\PackagingFinder\RepositoryCachingPackagingFinder;
+use App\Domain\PackagingFinder\RepositoryPackagingFinder;
 use App\Infrastructure\Doctrine\DoctrinePackagingAssignmentRepository;
 use App\Infrastructure\Doctrine\DoctrinePackagingsRepository;
 use App\Infrastructure\Doctrine\ProductSignatureCalculator;
@@ -23,13 +23,13 @@ $signatureCalculator = new ProductSignatureCalculator();
 $packagingAssignmentRepository = new DoctrinePackagingAssignmentRepository($signatureCalculator, $entityManager);
 $packagingsRepository = new DoctrinePackagingsRepository($entityManager);
 
-$packageFinder = new CompositePackageFinder(
-    new RepositoryPackageFinder($packagingAssignmentRepository),
-    new RepositoryCachingWrapper(
-        new ApiPackageFinder($packagingsRepository, $connector),
+$packagingFinder = new CompositePackagingFinder(
+    new RepositoryPackagingFinder($packagingAssignmentRepository),
+    new RepositoryCachingPackagingFinder(
+        new ApiPackagingFinder($packagingsRepository, $connector),
         $packagingAssignmentRepository,
     ),
-    new FallbackPackageFinder($packagingsRepository),
+    new FallbackPackagingFinder($packagingsRepository),
 );
 
-return new Application($packageFinder);
+return new Application($packagingFinder);

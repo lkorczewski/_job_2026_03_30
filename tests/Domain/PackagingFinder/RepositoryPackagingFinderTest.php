@@ -2,30 +2,30 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Domain\PackageFinder;
+namespace App\Tests\Domain\PackagingFinder;
 
-use App\Domain\PackageFinder\PackageFinderResult;
-use App\Domain\PackageFinder\RepositoryPackageFinder;
 use App\Domain\Packaging;
 use App\Domain\PackagingAssignment;
-use App\Domain\PackagingAssignmentRepository;
+use App\Domain\PackagingFinder\PackagingFinderResult;
+use App\Domain\PackagingFinder\RepositoryPackagingFinder;
 use App\Domain\Product;
 use App\Domain\Products;
+use App\Infrastructure\Doctrine\DoctrinePackagingAssignmentRepository;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
-final class RepositoryPackageFinderTest extends TestCase
+final class RepositoryPackagingFinderTest extends TestCase
 {
-    private PackagingAssignmentRepository & MockObject $assignmentRepository;
-    private RepositoryPackageFinder $packageFinder;
+    private DoctrinePackagingAssignmentRepository&MockObject $assignmentRepository;
+    private RepositoryPackagingFinder $packagingFinder;
 
     protected function setUp(): void
     {
-        $this->assignmentRepository = $this->createMock(PackagingAssignmentRepository::class);
-        $this->packageFinder = new RepositoryPackageFinder($this->assignmentRepository);
+        $this->assignmentRepository = $this->createMock(DoctrinePackagingAssignmentRepository::class);
+        $this->packagingFinder = new RepositoryPackagingFinder($this->assignmentRepository);
     }
 
-    public function testFound(): void
+    public function testItReturnsHitFromRepository(): void
     {
         $products = new Products(
             new Product(width: 300, height: 100, length: 200, weight: 400),
@@ -42,12 +42,12 @@ final class RepositoryPackageFinderTest extends TestCase
             ->willReturn(new PackagingAssignment($normalizedProducts, $packaging));
 
         self::assertEquals(
-            PackageFinderResult::createHit($packaging, RepositoryPackageFinder::class),
-            $this->packageFinder->findPackage($products),
+            PackagingFinderResult::createHit($packaging, RepositoryPackagingFinder::class),
+            $this->packagingFinder->findPackage($products),
         );
     }
 
-    public function testNotFound(): void
+    public function testItReturnsMissWhenRepositoryHasNoAssignment(): void
     {
         $products = new Products(
             new Product(width: 300, height: 100, length: 200, weight: 400),
@@ -65,8 +65,8 @@ final class RepositoryPackageFinderTest extends TestCase
             ->willReturn(null);
 
         self::assertEquals(
-            PackageFinderResult::createMiss(RepositoryPackageFinder::class),
-            $this->packageFinder->findPackage($products),
+            PackagingFinderResult::createMiss(RepositoryPackagingFinder::class),
+            $this->packagingFinder->findPackage($products),
         );
     }
 }

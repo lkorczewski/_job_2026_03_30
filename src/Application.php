@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App;
 
-use App\Domain\PackageFinder\ApiPackageFinder;
-use App\Domain\PackageFinder\FallbackPackageFinder;
-use App\Domain\PackageFinder\PackageFinder;
-use App\Domain\PackageFinder\PackageFinderResult;
-use App\Domain\PackageFinder\RepositoryPackageFinder;
+use App\Domain\PackagingFinder\ApiPackagingFinder;
+use App\Domain\PackagingFinder\FallbackPackagingFinder;
+use App\Domain\PackagingFinder\PackagingFinder;
+use App\Domain\PackagingFinder\PackagingFinderResult;
+use App\Domain\PackagingFinder\RepositoryPackagingFinder;
 use App\Domain\Product;
 use App\Domain\Products;
 use GuzzleHttp\Psr7\Response;
@@ -23,7 +23,7 @@ final readonly class Application
     private const int MAX_PRODUCTS = 100;
 
     public function __construct(
-        private PackageFinder $packageFinder,
+        private PackagingFinder $packagingFinder,
     ) {
     }
 
@@ -43,9 +43,9 @@ final readonly class Application
             return $this->getTooManyProductsResponse();
         }
 
-        $result = $this->packageFinder->findPackage($products);
+        $result = $this->packagingFinder->findPackage($products);
 
-        if ($result->status !== PackageFinderResult::HIT) {
+        if ($result->status !== PackagingFinderResult::HIT) {
             return $this->getServiceUnavailableResponse();
         }
 
@@ -53,9 +53,9 @@ final readonly class Application
             'products' => iterator_to_array($products),
             'packaging' => $result->packaging,
             'source' => match ($result->source) {
-                RepositoryPackageFinder::class => 'cache',
-                ApiPackageFinder::class => 'api',
-                FallbackPackageFinder::class => 'fallback',
+                RepositoryPackagingFinder::class => 'cache',
+                ApiPackagingFinder::class => 'api',
+                FallbackPackagingFinder::class => 'fallback',
                 default => 'misconfigured',
             },
         ], JSON_PRETTY_PRINT));
