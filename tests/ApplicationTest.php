@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Tests;
 
 use App\Application;
-use App\Domain\PackageFinder\ApiPackageFinder;
-use App\Domain\PackageFinder\FallbackPackageFinder;
-use App\Domain\PackageFinder\PackageFinder;
-use App\Domain\PackageFinder\PackageFinderResult;
-use App\Domain\PackageFinder\RepositoryPackageFinder;
+use App\Domain\PackagingFinder\ApiPackagingFinder;
+use App\Domain\PackagingFinder\FallbackPackagingFinder;
+use App\Domain\PackagingFinder\PackagingFinder;
+use App\Domain\PackagingFinder\PackagingFinderResult;
+use App\Domain\PackagingFinder\RepositoryPackagingFinder;
 use App\Domain\Packaging;
 use GuzzleHttp\Psr7\Request;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -17,24 +17,24 @@ use PHPUnit\Framework\TestCase;
 
 final class ApplicationTest extends TestCase
 {
-    private PackageFinder & MockObject $packageFinder;
+    private PackagingFinder & MockObject $packagingFinder;
     private Application $application;
 
     protected function setUp(): void
     {
-        $this->packageFinder = $this->createMock(PackageFinder::class);
-        $this->application = new Application($this->packageFinder);
+        $this->packagingFinder = $this->createMock(PackagingFinder::class);
+        $this->application = new Application($this->packagingFinder);
     }
 
     public function testSuccess(): void
     {
-        $this->packageFinder
+        $this->packagingFinder
             ->expects(self::once())
             ->method('findPackage')
             ->willReturn(
-                PackageFinderResult::createHit(
+                PackagingFinderResult::createHit(
                     new Packaging(id: 1, width: 10, height: 20, length: 30, maxWeight: 40),
-                    ApiPackageFinder::class,
+                    ApiPackagingFinder::class,
                 )
             );
 
@@ -75,7 +75,7 @@ final class ApplicationTest extends TestCase
 
     public function testInvalidJson(): void
     {
-        $this->packageFinder->expects(self::never())->method('findPackage');
+        $this->packagingFinder->expects(self::never())->method('findPackage');
 
         $response = $this->application->run(
             new Request('POST', '/pack', ['Content-Type' => 'application/json'], '{"products":')
@@ -90,7 +90,7 @@ final class ApplicationTest extends TestCase
 
     public function testInvalidRequestStructure(): void
     {
-        $this->packageFinder->expects(self::never())->method('findPackage');
+        $this->packagingFinder->expects(self::never())->method('findPackage');
 
         $response = $this->application->run(
             new Request('POST', '/pack', ['Content-Type' => 'application/json'], '{"foo":"bar"}')
@@ -105,7 +105,7 @@ final class ApplicationTest extends TestCase
 
     public function testTooManyProducts(): void
     {
-        $this->packageFinder->expects(self::never())->method('findPackage');
+        $this->packagingFinder->expects(self::never())->method('findPackage');
 
         $products = array_fill(0, 101, [
             'width' => 1,
@@ -132,10 +132,10 @@ final class ApplicationTest extends TestCase
 
     public function testUnableToDetermineResponse(): void
     {
-        $this->packageFinder
+        $this->packagingFinder
             ->expects(self::once())
             ->method('findPackage')
-            ->willReturn(PackageFinderResult::createMiss(RepositoryPackageFinder::class));
+            ->willReturn(PackagingFinderResult::createMiss(RepositoryPackagingFinder::class));
 
         $response = $this->application->run(
             new Request(

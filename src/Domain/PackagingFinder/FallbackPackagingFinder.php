@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\PackageFinder;
+namespace App\Domain\PackagingFinder;
 
 use App\Domain\PackagingsRepository;
 use App\Domain\Product;
 use App\Domain\Products;
 
-final readonly class FallbackPackageFinder implements PackageFinder
+final readonly class FallbackPackagingFinder implements PackagingFinder
 {
     public function __construct(private PackagingsRepository $packagingsRepository)
     {
     }
 
-    public function findPackage(Products $products): PackageFinderResult
+    public function findPackage(Products $products): PackagingFinderResult
     {
         if ($products->count() !== 1) {
-            return PackageFinderResult::createMiss(self::class);
+            return PackagingFinderResult::createMiss(self::class);
         }
 
         /** @var Product $normalizedProduct */
@@ -43,6 +43,6 @@ final readonly class FallbackPackageFinder implements PackageFinder
             }
         }
 
-        return PackageFinderResult::createHit($selectedPackaging, self::class);
+        return PackagingFinderResult::createHit($selectedPackaging, self::class);
     }
 }

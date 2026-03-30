@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\PackageFinder;
+namespace App\Domain\PackagingFinder;
 
 use App\Domain\Packaging;
 
-final readonly class PackageFinderResult
+final readonly class PackagingFinderResult
 {
     public const string HIT = 'hit';
     public const string MISS = 'miss';

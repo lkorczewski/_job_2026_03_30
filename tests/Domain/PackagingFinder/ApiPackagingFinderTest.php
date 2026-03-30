@@ -2,34 +2,34 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Domain\PackageFinder;
+namespace App\Tests\Domain\PackagingFinder;
 
-use App\Domain\ApiConnector;
-use App\Domain\PackageFinder\ApiPackageFinder;
-use App\Domain\PackageFinder\PackageFinderResult;
 use App\Domain\Packaging;
 use App\Domain\Packagings;
-use App\Domain\PackagingsRepository;
+use App\Domain\PackagingFinder\ApiPackagingFinder;
+use App\Domain\PackagingFinder\PackagingFinderResult;
 use App\Domain\Product;
 use App\Domain\Products;
+use App\Infrastructure\Doctrine\DoctrinePackagingsRepository;
+use App\Infrastructure\Janedbal\JanedbalApiConnector;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
-final class ApiPackageFinderTest extends TestCase
+final class ApiPackagingFinderTest extends TestCase
 {
-    private PackagingsRepository & MockObject $packagingsRepository;
-    private ApiConnector & MockObject $connector;
-    private ApiPackageFinder $packageFinder;
+    private DoctrinePackagingsRepository&MockObject $packagingsRepository;
+    private JanedbalApiConnector&MockObject $connector;
+    private ApiPackagingFinder $packagingFinder;
 
     protected function setUp(): void
     {
-        $this->packagingsRepository = $this->createMock(PackagingsRepository::class);
-        $this->connector = $this->createMock(ApiConnector::class);
-        $this->packageFinder = new ApiPackageFinder($this->packagingsRepository, $this->connector);
+        $this->packagingsRepository = $this->createMock(DoctrinePackagingsRepository::class);
+        $this->connector = $this->createMock(JanedbalApiConnector::class);
+        $this->packagingFinder = new ApiPackagingFinder($this->packagingsRepository, $this->connector);
     }
 
-    public function testFound(): void
+    public function testItReturnsHitWithPackagingFromConnector(): void
     {
         $products = new Products(
             new Product(width: 100, height: 200, length: 300, weight: 400),
@@ -52,12 +52,12 @@ final class ApiPackageFinderTest extends TestCase
             ->willReturn($packaging);
 
         self::assertEquals(
-            PackageFinderResult::createHit($packaging, ApiPackageFinder::class),
-            $this->packageFinder->findPackage($products),
+            PackagingFinderResult::createHit($packaging, ApiPackagingFinder::class),
+            $this->packagingFinder->findPackage($products),
         );
     }
 
-    public function testNotFound(): void
+    public function testItReturnsHitWithNullPackagingWhenConnectorReturnsNull(): void
     {
         $products = new Products(
             new Product(width: 100, height: 200, length: 300, weight: 400),
@@ -78,12 +78,12 @@ final class ApiPackageFinderTest extends TestCase
             ->willReturn(null);
 
         self::assertEquals(
-            PackageFinderResult::createHit(null, ApiPackageFinder::class),
-            $this->packageFinder->findPackage($products),
+            PackagingFinderResult::createHit(null, ApiPackagingFinder::class),
+            $this->packagingFinder->findPackage($products),
         );
     }
 
-    public function testConnectorException(): void
+    public function testItReturnsMissWhenConnectorThrowsRuntimeException(): void
     {
         $products = new Products(
             new Product(width: 100, height: 200, length: 300, weight: 400),
@@ -104,8 +104,8 @@ final class ApiPackageFinderTest extends TestCase
             ->willThrowException(new RuntimeException('Upstream request failed'));
 
         self::assertEquals(
-            PackageFinderResult::createMiss(ApiPackageFinder::class),
-            $this->packageFinder->findPackage($products),
+            PackagingFinderResult::createMiss(ApiPackagingFinder::class),
+            $this->packagingFinder->findPackage($products),
         );
     }
 }
