@@ -8,6 +8,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
+#[ORM\Table(indexes: [new ORM\Index(name: 'idx_product_signature', columns: ['productSignature'])])]
 class PackagingAssignment
 {
     #[ORM\Id]
@@ -15,7 +16,7 @@ class PackagingAssignment
     #[ORM\GeneratedValue]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING)]
+    #[ORM\Column(type: Types::STRING, length: 1024)]
     public string $productSignature;
 
     #[ORM\ManyToOne(targetEntity: Packaging::class)]

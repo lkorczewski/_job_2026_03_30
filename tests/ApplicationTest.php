@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests;
 
 use App\Application;
+use App\Domain\Exception\TooManyProducts;
 use App\Domain\PackageFinder\ApiPackageFinder;
 use App\Domain\PackageFinder\FallbackPackageFinder;
 use App\Domain\PackageFinder\PackageFinder;
@@ -99,6 +100,29 @@ final class ApplicationTest extends TestCase
         self::assertSame(400, $response->getStatusCode());
         self::assertSame(
             '{"error":"invalid_request_content","message":"Request body has invalid structure"}',
+            $response->getBody()->getContents(),
+        );
+    }
+
+    public function testTooManyProducts(): void
+    {
+        $this->packageFinder
+            ->expects(self::once())
+            ->method('findPackage')
+            ->willThrowException(new TooManyProducts('Too many products'));
+
+        $response = $this->application->run(
+            new Request(
+                'POST',
+                '/pack',
+                ['Content-Type' => 'application/json'],
+                '{"products":[{"width":1,"height":2,"length":3,"weight":4}]}',
+            )
+        );
+
+        self::assertSame(422, $response->getStatusCode());
+        self::assertSame(
+            '{"error":"too_many_products","message":"Too many products to determine packaging"}',
             $response->getBody()->getContents(),
         );
     }

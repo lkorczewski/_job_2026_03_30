@@ -6,9 +6,13 @@ namespace App\Infrastructure\Doctrine;
 
 use App\Domain\Product;
 use App\Domain\Products;
+use App\Domain\Exception\TooManyProducts;
 
 final readonly class SignatureBuilder
 {
+    private const int MAX_LENGTH = 1024;
+
+    /** @throws TooManyProducts */
     public function calculate(Products $products): string
     {
         $productSignatures = array_map(
@@ -22,6 +26,12 @@ final readonly class SignatureBuilder
             iterator_to_array($products),
         );
 
-        return implode('|', $productSignatures);
+        $signature = implode('|', $productSignatures);
+
+        if (strlen($signature) > self::MAX_LENGTH) {
+            throw new TooManyProducts('Too many products');
+        }
+
+        return $signature;
     }
 }

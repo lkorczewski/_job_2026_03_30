@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Doctrine;
 
+use App\Domain\Exception\TooManyProducts;
 use App\Domain\PackagingAssignment;
 use App\Domain\PackagingAssignmentRepository;
 use App\Domain\Products;
@@ -19,6 +20,7 @@ final readonly class DoctrinePackagingAssignmentRepository implements PackagingA
     ) {
     }
 
+    /** @throws TooManyProducts */
     public function save(PackagingAssignment $packagingAssignment): void
     {
         $packagingEntity = $this->entityManager
@@ -34,6 +36,7 @@ final readonly class DoctrinePackagingAssignmentRepository implements PackagingA
         $this->entityManager->flush();
     }
 
+    /** @throws TooManyProducts */
     public function findByProducts(Products $products): ?PackagingAssignment
     {
         $signature = $this->signatureCalculator->calculate($products);

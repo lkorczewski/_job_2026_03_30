@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\PackageFinder;
 
+use App\Domain\Exception\TooManyProducts;
 use App\Domain\PackagingAssignmentRepository;
 use App\Domain\Products;
 
@@ -14,6 +15,7 @@ final readonly class RepositoryPackageFinder implements PackageFinder
     ) {
     }
 
+    /** @throws TooManyProducts */
     public function findPackage(Products $products): PackageFinderResult
     {
         $packagingAssignment = $this->assignmentRepository->findByProducts($products->normalize());

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App;
 
+use App\Domain\Exception\TooManyProducts;
 use App\Domain\PackageFinder\ApiPackageFinder;
 use App\Domain\PackageFinder\FallbackPackageFinder;
 use App\Domain\PackageFinder\PackageFinder;
@@ -29,16 +30,20 @@ final readonly class Application
         try {
             $requestBody = $this->decodeRequest($request);
         } catch (JsonException) {
-            return $this->getInvalidRequestFormat();
+            return $this->getInvalidRequestFormatResponse();
         }
 
         try {
             $products = $this->extractProducts($requestBody);
         } catch (InvalidArgumentException) {
-            return $this->getInvalidRequestContent();
+            return $this->getInvalidRequestContentResponse();
         }
 
-        $result = $this->packageFinder->findPackage($products);
+        try {
+            $result = $this->packageFinder->findPackage($products);
+        } catch (TooManyProducts) {
+            return $this->getTooManyProductsResponse();
+        }
 
         if ($result->status !== PackageFinderResult::HIT) {
             return $this->getServiceUnavailableResponse();
@@ -56,7 +61,7 @@ final readonly class Application
         ], JSON_PRETTY_PRINT));
     }
 
-    private function getInvalidRequestFormat(): Response
+    private function getInvalidRequestFormatResponse(): Response
     {
         return new Response(
             status: 400,
@@ -67,7 +72,7 @@ final readonly class Application
         );
     }
 
-    private function getInvalidRequestContent(): Response
+    private function getInvalidRequestContentResponse(): Response
     {
         return new Response(
             status: 400,
@@ -87,6 +92,17 @@ final readonly class Application
             $request->getBody()->getContents(),
             associative: true,
             flags: JSON_THROW_ON_ERROR,
+        );
+    }
+
+    private function getTooManyProductsResponse(): Response
+    {
+        return new Response(
+            status: 422,
+            body: json_encode([
+                'error' => 'too_many_products',
+                'message' => 'Too many products to determine packaging',
+            ])
         );
     }
 
