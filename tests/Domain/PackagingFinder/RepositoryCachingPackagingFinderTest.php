@@ -25,7 +25,10 @@ final class RepositoryCachingPackagingFinderTest extends TestCase
     {
         $this->packagingFinder = $this->createMock(PackagingFinder::class);
         $this->packagingAssignmentRepository = $this->createMock(PackagingAssignmentRepository::class);
-        $this->wrapper = new RepositoryCachingPackagingFinder($this->packagingFinder, $this->packagingAssignmentRepository);
+        $this->wrapper = new RepositoryCachingPackagingFinder(
+            $this->packagingFinder,
+            $this->packagingAssignmentRepository
+        );
     }
 
     public function testSavingWhenHit(): void

@@ -8,6 +8,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
+#[ORM\Index(name: 'idx_position_signature', fields: ['position', 'signature'])]
 class PackagingAssignmentProduct
 {
     #[ORM\Id]

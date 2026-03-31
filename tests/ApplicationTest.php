@@ -103,6 +103,36 @@ final class ApplicationTest extends TestCase
         );
     }
 
+    public function testMaxProducts(): void
+    {
+        $products = array_fill(0, 100, [
+            'width' => 1,
+            'height' => 2,
+            'length' => 3,
+            'weight' => 4,
+        ]);
+
+        $this->packagingFinder
+            ->expects(self::once())
+            ->method('findPackage')
+            ->willReturn(PackagingFinderResult::createMiss(RepositoryPackagingFinder::class));
+
+        $response = $this->application->run(
+            new Request(
+                'POST',
+                '/pack',
+                ['Content-Type' => 'application/json'],
+                json_encode(['products' => $products]),
+            )
+        );
+
+        self::assertSame(503, $response->getStatusCode());
+        self::assertSame(
+            '{"error":"service_unavailable","message":"Unable to determine packaging at this time"}',
+            $response->getBody()->getContents(),
+        );
+    }
+
     public function testTooManyProducts(): void
     {
         $this->packagingFinder->expects(self::never())->method('findPackage');

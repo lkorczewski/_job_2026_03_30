@@ -38,13 +38,8 @@ class PackagingAssignment
         $this->products = new ArrayCollection();
 
         foreach ($products as $product) {
-            $this->addProduct($product);
+            $this->products->add($product);
+            $product->setPackagingAssignment($this);
         }
-    }
-
-    public function addProduct(PackagingAssignmentProduct $product): void
-    {
-        $this->products->add($product);
-        $product->setPackagingAssignment($this);
     }
 }

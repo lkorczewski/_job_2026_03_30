@@ -8,6 +8,7 @@ use App\Domain\Packaging;
 use App\Domain\PackagingFinder\FallbackPackagingFinder;
 use App\Domain\PackagingFinder\PackagingFinderResult;
 use App\Domain\Packagings;
+use App\Domain\PackagingsRepository;
 use App\Domain\Product;
 use App\Domain\Products;
 use App\Infrastructure\Doctrine\DoctrinePackagingsRepository;
@@ -17,12 +18,12 @@ use PHPUnit\Framework\TestCase;
 
 final class FallbackPackagingFinderTest extends TestCase
 {
-    private DoctrinePackagingsRepository&MockObject $packagingsRepository;
+    private PackagingsRepository & MockObject $packagingsRepository;
     private FallbackPackagingFinder $packagingFinder;
 
     protected function setUp(): void
     {
-        $this->packagingsRepository = $this->createMock(DoctrinePackagingsRepository::class);
+        $this->packagingsRepository = $this->createMock(PackagingsRepository::class);
         $this->packagingFinder = new FallbackPackagingFinder($this->packagingsRepository);
     }
 

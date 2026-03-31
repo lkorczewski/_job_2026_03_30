@@ -4,28 +4,28 @@ declare(strict_types=1);
 
 namespace App\Tests\Domain\PackagingFinder;
 
+use App\Domain\ApiConnector;
 use App\Domain\Packaging;
-use App\Domain\Packagings;
 use App\Domain\PackagingFinder\ApiPackagingFinder;
 use App\Domain\PackagingFinder\PackagingFinderResult;
+use App\Domain\Packagings;
+use App\Domain\PackagingsRepository;
 use App\Domain\Product;
 use App\Domain\Products;
-use App\Infrastructure\Doctrine\DoctrinePackagingsRepository;
-use App\Infrastructure\Janedbal\JanedbalApiConnector;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
 final class ApiPackagingFinderTest extends TestCase
 {
-    private DoctrinePackagingsRepository&MockObject $packagingsRepository;
-    private JanedbalApiConnector&MockObject $connector;
+    private PackagingsRepository & MockObject $packagingsRepository;
+    private ApiConnector & MockObject $connector;
     private ApiPackagingFinder $packagingFinder;
 
     protected function setUp(): void
     {
-        $this->packagingsRepository = $this->createMock(DoctrinePackagingsRepository::class);
-        $this->connector = $this->createMock(JanedbalApiConnector::class);
+        $this->packagingsRepository = $this->createMock(PackagingsRepository::class);
+        $this->connector = $this->createMock(ApiConnector::class);
         $this->packagingFinder = new ApiPackagingFinder($this->packagingsRepository, $this->connector);
     }
 

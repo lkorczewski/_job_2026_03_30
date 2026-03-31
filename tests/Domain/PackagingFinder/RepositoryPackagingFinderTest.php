@@ -6,6 +6,7 @@ namespace App\Tests\Domain\PackagingFinder;
 
 use App\Domain\Packaging;
 use App\Domain\PackagingAssignment;
+use App\Domain\PackagingAssignmentRepository;
 use App\Domain\PackagingFinder\PackagingFinderResult;
 use App\Domain\PackagingFinder\RepositoryPackagingFinder;
 use App\Domain\Product;
@@ -16,12 +17,12 @@ use PHPUnit\Framework\TestCase;
 
 final class RepositoryPackagingFinderTest extends TestCase
 {
-    private DoctrinePackagingAssignmentRepository&MockObject $assignmentRepository;
+    private PackagingAssignmentRepository & MockObject $assignmentRepository;
     private RepositoryPackagingFinder $packagingFinder;
 
     protected function setUp(): void
     {
-        $this->assignmentRepository = $this->createMock(DoctrinePackagingAssignmentRepository::class);
+        $this->assignmentRepository = $this->createMock(PackagingAssignmentRepository::class);
         $this->packagingFinder = new RepositoryPackagingFinder($this->assignmentRepository);
     }
 
